@@ -4,6 +4,8 @@
   (chicken format)
   (chicken string)
   (srfi 1)
+  ; hash tables
+  (srfi 69)
   defstruct
   scheme
 )
@@ -59,6 +61,29 @@
         (+ power 1)
         (cdr digits)))))
 
+(define (symbols-positions surrounding x y)
+  (let loop [(rem (reverse surrounding)) (i -1) (j -1) (s-positions '())]
+    (let [(x (+ x i)) (y (+ y j))] ; x and y of current tile
+      (if (and (equal? i 0) (equal? j 0))
+        ; skip middle without (cdr rem)
+        (loop rem (+ i 1) j s-positions)
+        (let [(c (car rem))]
+          (when (char-is-symbol? c)
+            (set! s-positions (cons (list c x y) s-positions)))
+          (cond
+            ((and (equal? i 1) (equal? j 1)) s-positions)
+            ((equal? i 1) (loop (cdr rem) -1 (+ j 1) s-positions))
+            (else (loop (cdr rem) (+ i 1) j s-positions))))))))
+
+(define (unique l)
+  (let loop [(rem l) (new '())]
+    (if (null? rem)
+      (reverse new)
+      (let [(el (car rem))]
+        (if (not (member el new))
+          (loop (cdr rem) (cons el new))
+          (loop (cdr rem) new))))))
+
 ;; given position of the first digit of the number at (x, y)
 ;; parses the number from the grid into a `schema/number`
 (define (parse-schema/number grid x y)
@@ -68,11 +93,12 @@
         (list
           ;; return the number and the new x index
           (make-schema/number
-            adjacent-symbols: adjacent-symbols
+            adjacent-symbols: (unique adjacent-symbols)
             value: (digits->value digits))
           i)
         (let* [(surrounding (get-surrounding grid i y))
-               (symbols (filter char-is-symbol? surrounding))]
+               ; (symbols (filter char-is-symbol? surrounding))]
+               (symbols (symbols-positions surrounding i y))]
           (stepper (+ i 1) (cons digit digits) (append symbols adjacent-symbols)))))))
 
 (define (parse-schema/row grid y)
@@ -94,6 +120,29 @@
 (define (is-adjacent? n)
   (> (length (schema/number-adjacent-symbols n)) 0))
 
+(define (is-cog-number? n)
+  (let [(cog-filter (lambda (syms) (equal? (car syms) #\*)))]
+    (> (length (filter cog-filter (schema/number-adjacent-symbols n))) 0)))
+
+;; add all of the numbers to the hash table
+(define (add-to-table! table n)
+  (let loop [(rem (schema/number-adjacent-symbols n))]
+    (unless (null? rem)
+      (hash-table-update!/default
+        table
+        (cdar rem)
+        (lambda (existing) (cons (schema/number-value n) existing))
+        '())
+      (loop (cdr rem)))))
+
+(define (get-valid-cogs table)
+  (let [(valids '())]
+    (hash-table-walk
+      table
+      (lambda (key value)
+        (when (equal? (length value) 2) (set! valids (cons value valids)))))
+    valids))
+
 (define (getlines filename)
   (call-with-input-file filename (lambda (port) (read-lines port))))
 
@@ -101,4 +150,9 @@
   (let* [(grid (map string->list lines))
          (numbers (parse-schema grid))
          (numbers/adjacent (filter is-adjacent? numbers))]
-    (apply + (map schema/number-value numbers/adjacent))))
+    (print "Part 1: " (apply + (map schema/number-value numbers/adjacent)))
+    (let [(cog-numbers (filter is-cog-number? numbers/adjacent))
+           (cog-table (make-hash-table))]
+      (for-each (lambda (n) (add-to-table! cog-table n)) cog-numbers)
+      (let* [(cogs (get-valid-cogs cog-table))]
+        (print "Part 2: " (apply + (map (lambda (items) (apply * items)) cogs)))))))
