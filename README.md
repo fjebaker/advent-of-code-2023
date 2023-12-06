@@ -9,3 +9,4 @@ Advent of Code 2023 in CHICKEN Scheme (until I can't do it anymore and fallback 
 - 03: hash tables are in `(srfi 69)`, and `(chicken plist)` is for `(symbol value)` list pairs. Also `printf` is cool
 - 04: Vectors are fixed length lists with $O(1)$ read write operations
 - 05: Life would be easier if you always treat ranges as `(start, end)` and not `(start, length)`. Also why loop when you can `(map)`!
+- 06: `(floor)` and `(ceiling)` also do float to integer parsing
