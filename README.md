@@ -10,3 +10,4 @@ Advent of Code 2023 in CHICKEN Scheme (until I can't do it anymore and fallback 
 - 04: Vectors are fixed length lists with $O(1)$ read write operations
 - 05: Life would be easier if you always treat ranges as `(start, end)` and not `(start, length)`. Also why loop when you can `(map)`!
 - 06: `(floor)` and `(ceiling)` also do float to integer parsing, but then need to recover exactness with `(inexact->exact)`. Also `(map)` accepts as many lists as function airity!
+- 07: `(plist)` is useful but the way you have to pass the symbol around instead of e.g. the list itself is counter-intuitive. Also I can't work out how to do `if any` on a list?
