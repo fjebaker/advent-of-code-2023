@@ -30,7 +30,6 @@
 (define (follow-path-until condition start full-path lookup)
   (let loop [(current start) (path full-path) (step 0)]
     (when (null? path) (set! path full-path))
-    ; (print current " -> " (car path) " via " (hash-table-ref lookup current))
     (if (condition current)
       step
       (let [(options (hash-table-ref lookup current))
