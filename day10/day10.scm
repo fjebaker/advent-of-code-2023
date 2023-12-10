@@ -134,57 +134,17 @@
         (run-loops grid x y (cdr options))
         (cons (cons #\S (cons x y)) loop)))))
 
-(define (vertical? aitem bitem)
-  (let [(a (cdr aitem)) (b (cdr bitem))]
-    (let [(y1 (cdr a)) (y2 (cdr b))]
-      (if (eq? y1 y2)
-        (<= (car a) (car b))
-        (<= y1 y2)))))
-
-(define (area-between c1 c2)
-  (- (cadr c1) (cadr c2)))
-
-(define (next-line sorted-loop)
-  (let line-builder [(height (cddar sorted-loop))
-                     (sorted-loop sorted-loop)
-                     (line '())]
-    (if (eq? 0 (length sorted-loop))
-      (cons sorted-loop (reverse line))
-      (if (eq? height (cddar sorted-loop))
-        (line-builder height (cdr sorted-loop) (cons (car sorted-loop) line))
-        (cons sorted-loop (reverse line))))))
-
-(define (is-clockwise s)
-  (let [(x (car s))]
-    (or (char=? #\| x) (char=? #\J x) (char=? #\L x))))
-
-(define (next-clockwise line)
-  (let loop [(line line) (counter 0)]
-    (if (null? line)
-      (cons '(()) 0)
-      (if (is-clockwise (car line))
-        (cons line counter)
-        (loop (cdr line) (+ counter 1))))))
-
-(define (calc-area sorted-loop)
-  (let loop [(sorted-loop sorted-loop) (area 0)]
-    (if (null? sorted-loop)
-      area
-      (let* [(carry (next-line sorted-loop))
-             (line (cdr carry))]
-        (let walk [(line line) (area area)]
-          (if (null? line)
-            (loop (car carry) area)
-            (let* [(info1 (next-clockwise line))
-                   (c1 (caar info1))
-                   (info2 (next-clockwise (cdar info1)))
-                   (c2 (caar info2))
-                   (count (cdr info2))]
-              (if (null? c2)
-                (walk '() area)
-                (let [(new-area (- (cadr c2) (cadr c1) count 1))]
-                  (walk (cdar info2) (+ new-area area))
-                  )))))))))
+(define (shoelace loop)
+  (let loop [(rem (cons (last loop) loop)) (sum 0)]
+    (if (eq? 1 (length rem))
+      sum
+      (let* [(p1 (car rem))
+             (p2 (cadr rem))
+             (x1 (cadr p1))
+             (y1 (cddr p1))
+             (x2 (cadr p2))
+             (y2 (cddr p2))]
+        (loop (cdr rem) (+ sum (- (* x1 y2) (* y1 x2))))))))
 
 (let* [(lines (getlines "day10/input.txt"))
        (grid (map string->list lines))
@@ -193,7 +153,7 @@
                   valid-start?
                   (get-surrounding grid (car start) (cdr start))))
        (loop (run-loops grid (car start) (cdr start) options))
-       (sorted-loop (sort loop vertical?))]
+       (total-area (/ (abs (shoelace loop)) 2))]
   (print "Part1: " (round (/ (length loop) 2)))
-  (print "Part2: " (calc-area sorted-loop))
+  (print "Part2: " (+ ( - total-area (/ (length loop) 2)) 1))
   )

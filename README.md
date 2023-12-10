@@ -13,4 +13,4 @@ Advent of Code 2023 in CHICKEN Scheme (until I can't do it anymore and fallback 
 - 07: `(plist)` is useful but the way you have to pass the symbol around instead of e.g. the list itself is counter-intuitive. Also I can't work out how to do `if any` on a list?
 - 08: `(chicken irregex)` are IrRegular Expressions, that are also constructed from s-expressions.
 - 09: `(define ((curry f x) y) (f x y))` is *chef's kiss*. Also SRFI-1 has an `every` that does what I wanted with `all/any`!
-- 10: it might be better to use data structures instead of remembering if it's `car` or `cdr` next...
+- 10: it might be better to use data structures instead of remembering if it's `car` or `cdr` next. [Pick's Theorem](https://en.wikipedia.org/wiki/Pick%27s_theorem) is very cool!
